@@ -1,0 +1,36 @@
+{
+  "dataset_count": 3,
+  "datasets": [
+    {
+      "dataset_id": "DATASET-001",
+      "event_count": 2000,
+      "manifest": "DATASET-001/manifest.json",
+      "name": "Northstar Enterprise",
+      "provenance": "synthetic"
+    },
+    {
+      "dataset_id": "DATASET-002",
+      "event_count": 2000,
+      "manifest": "DATASET-002/manifest.json",
+      "name": "Harbor Cloud and Identity",
+      "provenance": "synthetic"
+    },
+    {
+      "dataset_id": "DATASET-003",
+      "event_count": 2000,
+      "manifest": "DATASET-003/manifest.json",
+      "name": "Cedar Mixed Operations",
+      "provenance": "synthetic"
+    }
+  ],
+  "generated_at": "2026-10-31T00:00:00Z",
+  "library_version": "1.0",
+  "severity_counts": {
+    "critical": 300,
+    "high": 600,
+    "informational": 1500,
+    "low": 2100,
+    "medium": 1500
+  },
+  "total_event_count": 6000
+}

@@ -1,0 +1,35 @@
+{
+  "dataset_id": "DATASET-001",
+  "description": "Synthetic multi-source security events for local investigation and evaluation.",
+  "event_count": 2000,
+  "event_file": "events.jsonl",
+  "event_file_sha256": "2a320cde04406464791d8d350190dc52f5ba3ce958de5886a8089cf75bcb8393",
+  "ground_truth_access": "evaluation_only; do not provide to investigation agents",
+  "ground_truth_file": "ground_truth.jsonl",
+  "ground_truth_file_sha256": "712510a090a686beda14b058255e7143df9fd3d49e939e95ad635c09a10b4369",
+  "manifest_version": "1.0",
+  "name": "Northstar Enterprise",
+  "provenance": {
+    "generated_at": "2026-10-31T00:00:00Z",
+    "generator": "scripts/generate_synthetic_datasets.py",
+    "generator_version": "1.0",
+    "origin": "synthetic",
+    "public_dataset_content": false
+  },
+  "severity_counts": {
+    "critical": 100,
+    "high": 200,
+    "informational": 500,
+    "low": 700,
+    "medium": 500
+  },
+  "source_types": [
+    "windows_security",
+    "linux_auth",
+    "network_firewall",
+    "cloud_audit",
+    "web_application",
+    "endpoint_security",
+    "email_identity"
+  ]
+}

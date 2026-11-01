@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Local security event investigation workspace">
+  <title>Security Operations</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Primary navigation">
+      <div class="brand-row">
+        <svg class="brand-mark" aria-hidden="true"><use href="/icons.svg#shield"></use></svg>
+        <span class="brand-name">Security Operations</span>
+        <button class="icon-button sidebar-collapse" id="sidebar-collapse" type="button" aria-label="Collapse sidebar" aria-expanded="true" aria-controls="sidebar" title="Collapse sidebar">
+          <svg aria-hidden="true"><use href="/icons.svg#chevron-left"></use></svg>
+        </button>
+      </div>
+      <nav class="primary-nav" aria-label="Workspace sections">
+        <a href="#overview" class="nav-link active" data-page="overview" aria-label="Overview" title="Overview" aria-current="page"><svg aria-hidden="true"><use href="/icons.svg#dashboard"></use></svg><span>Overview</span></a>
+        <a href="#datasets" class="nav-link" data-page="datasets" aria-label="Dataset Library" title="Dataset Library"><svg aria-hidden="true"><use href="/icons.svg#database"></use></svg><span>Dataset Library</span></a>
+        <a href="#investigations" class="nav-link" data-page="investigations" aria-label="Investigations" title="Investigations"><svg aria-hidden="true"><use href="/icons.svg#search"></use></svg><span>Investigations</span></a>
+        <a href="#findings" class="nav-link" data-page="findings" aria-label="Threat Findings" title="Threat Findings"><svg aria-hidden="true"><use href="/icons.svg#alert"></use></svg><span>Threat Findings</span></a>
+        <a href="#approvals" class="nav-link" data-page="approvals" aria-label="Response Approvals" title="Response Approvals"><svg aria-hidden="true"><use href="/icons.svg#shield-check"></use></svg><span>Response Approvals</span></a>
+        <a href="#processed" class="nav-link" data-page="processed" aria-label="Processed Logs" title="Processed Logs"><svg aria-hidden="true"><use href="/icons.svg#file-check"></use></svg><span>Processed Logs</span></a>
+        <a href="#audit" class="nav-link" data-page="audit" aria-label="Audit History" title="Audit History"><svg aria-hidden="true"><use href="/icons.svg#history"></use></svg><span>Audit History</span></a>
+        <a href="#reports" class="nav-link" data-page="reports" aria-label="Reports" title="Reports"><svg aria-hidden="true"><use href="/icons.svg#chart-bar"></use></svg><span>Reports</span></a>
+        <a href="#settings" class="nav-link" data-page="settings" aria-label="Settings" title="Settings"><svg aria-hidden="true"><use href="/icons.svg#settings"></use></svg><span>Settings</span></a>
+      </nav>
+      <div class="sidebar-footer"><span class="status-dot" aria-hidden="true"></span><span class="sidebar-footer-text">Local workspace</span></div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button class="icon-button mobile-menu" id="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
+          <svg aria-hidden="true"><use href="/icons.svg#menu"></use></svg>
+        </button>
+        <div class="topbar-context"><span class="eyebrow">SECURITY OPERATIONS</span><span class="topbar-separator" aria-hidden="true">/</span><span id="current-section">Overview</span></div>
+        <div class="topbar-actions">
+          <label class="dataset-switch-label" for="global-dataset">Dataset scope</label>
+          <select id="global-dataset" class="dataset-switch" aria-label="Select dataset scope"><option value="">All datasets</option></select>
+          <button class="icon-button theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light mode" title="Switch theme">
+            <svg aria-hidden="true"><use href="/icons.svg#sun"></use></svg>
+          </button>
+        </div>
+      </header>
+
+      <main id="main-content" class="main-content" tabindex="-1">
+        <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+        <section class="page-section" id="page-overview" data-title="Overview">
+          <div class="page-heading"><div><p class="eyebrow">OPERATIONAL SUMMARY</p><h1>Overview</h1><p class="page-description">Security activity and investigation state from the local event store.</p></div><div id="overview-synthetic-note" class="data-origin"></div></div>
+          <div id="overview-content" aria-live="polite"><p class="loading-text">Loading overview data…</p></div>
+        </section>
+
+        <section class="page-section" id="page-datasets" data-title="Dataset Library" hidden>
+          <div class="page-heading"><div><p class="eyebrow">SOURCE LIBRARY</p><h1>Dataset Library</h1><p class="page-description">Select one dataset to scope event search and investigations.</p></div></div>
+          <div class="section-toolbar"><div id="dataset-library-status" class="muted-text" role="status"></div><label class="button button-secondary file-button" tabindex="0" role="button">Import events<input id="dataset-file" class="visually-hidden-file" type="file" accept=".jsonl,.json,.csv"></label></div>
+          <div class="table-scroll"><table><caption class="sr-only">Available security event datasets</caption><thead><tr><th scope="col">Dataset</th><th scope="col">Provenance</th><th scope="col">Sources</th><th scope="col">Events</th><th scope="col">Severity</th><th scope="col">Validation</th><th scope="col">Checksum</th><th scope="col">Selection</th></tr></thead><tbody id="dataset-rows"><tr><td colspan="8" class="loading-text">Loading datasets…</td></tr></tbody></table></div>
+          <div id="selected-dataset-panel" class="workspace-panel" hidden></div>
+          <div id="dataset-events-panel" class="workspace-panel" hidden></div>
+        </section>
+
+        <section class="page-section" id="page-investigations" data-title="Investigations" hidden>
+          <div class="page-heading"><div><p class="eyebrow">MANUAL ANALYSIS</p><h1>Investigations</h1><p class="page-description">Start a three-agent investigation only after selecting a dataset.</p></div></div>
+          <div class="action-bar"><span id="investigation-scope" class="scope-readout">No dataset selected</span><label class="analyst-control">Analyst name<input id="investigator-name" type="text" maxlength="128" placeholder="Required to start"></label><button class="button button-primary" id="start-investigation" type="button" disabled><svg aria-hidden="true"><use href="/icons.svg#player-play"></use></svg>Start Investigation</button></div>
+          <div id="investigation-run-status" class="run-status" role="status" aria-live="polite" hidden></div>
+          <div class="table-scroll"><table><caption class="sr-only">Investigation history</caption><thead><tr><th scope="col">Investigation ID</th><th scope="col">Dataset</th><th scope="col">Requested by</th><th scope="col">Started</th><th scope="col">Status</th><th scope="col">Findings</th><th scope="col">Proposals</th></tr></thead><tbody id="investigation-rows"><tr><td colspan="7" class="loading-text">Loading investigations…</td></tr></tbody></table></div>
+          <div id="investigation-detail" class="workspace-panel" hidden></div>
+        </section>
+
+        <section class="page-section" id="page-findings" data-title="Threat Findings" hidden>
+          <div class="page-heading"><div><p class="eyebrow">INVESTIGATION OUTPUT</p><h1>Threat Findings</h1><p class="page-description">Agent assessments are hypotheses tied to original event evidence.</p></div></div>
+          <div class="filter-row"><label for="finding-severity">Severity</label><select id="finding-severity"><option value="">All severities</option><option>critical</option><option>high</option><option>medium</option><option>low</option><option>informational</option></select><label for="finding-search">Search</label><input id="finding-search" type="search" placeholder="Finding, event, or host"></div>
+          <div class="table-scroll"><table><caption class="sr-only">Threat findings from completed investigations</caption><thead><tr><th scope="col">Severity</th><th scope="col">Finding</th><th scope="col">Dataset</th><th scope="col">Event reference</th><th scope="col">Confidence</th><th scope="col">Created</th></tr></thead><tbody id="finding-rows"><tr><td colspan="6" class="loading-text">Loading findings…</td></tr></tbody></table></div>
+        </section>
+
+        <section class="page-section" id="page-approvals" data-title="Response Approvals" hidden>
+          <div class="page-heading"><div><p class="eyebrow">HUMAN REVIEW</p><h1>Response Approvals</h1><p class="page-description">Validate proposals, record your decision, then explicitly request a simulation.</p></div></div>
+          <div class="filter-row"><label for="approval-filter">Show</label><select id="approval-filter"><option value="pending">Awaiting decision</option><option value="all">All proposals</option><option value="approved">Approved</option><option value="denied">Denied</option></select></div>
+          <div id="approval-list" class="approval-list"><p class="loading-text">Loading proposals…</p></div>
+        </section>
+
+        <section class="page-section" id="page-processed" data-title="Processed Logs" hidden>
+          <div class="page-heading"><div><p class="eyebrow">SIMULATED OUTCOMES</p><h1>Processed Logs</h1><p class="page-description">Processed snapshots preserve the original event and show simulated changes separately.</p></div></div>
+          <div class="table-scroll"><table><caption class="sr-only">Processed event records</caption><thead><tr><th scope="col">Processed ID</th><th scope="col">Original event</th><th scope="col">Investigation</th><th scope="col">Approval</th><th scope="col">Execution</th><th scope="col">Status</th><th scope="col">Comparison</th></tr></thead><tbody id="processed-rows"><tr><td colspan="7" class="loading-text">Loading processed logs…</td></tr></tbody></table></div>
+          <div id="comparison-panel" class="workspace-panel" hidden></div>
+        </section>
+
+        <section class="page-section" id="page-audit" data-title="Audit History" hidden>
+          <div class="page-heading"><div><p class="eyebrow">TRACEABILITY</p><h1>Audit History</h1><p class="page-description">Dataset imports, agent stages, policy outcomes, human decisions, and simulations.</p></div></div>
+          <div class="table-scroll"><table><caption class="sr-only">Audit history</caption><thead><tr><th scope="col">Time</th><th scope="col">Action</th><th scope="col">Actor</th><th scope="col">Dataset</th><th scope="col">Resource</th><th scope="col">Details</th></tr></thead><tbody id="audit-rows"><tr><td colspan="6" class="loading-text">Loading audit events…</td></tr></tbody></table></div>
+        </section>
+
+        <section class="page-section" id="page-reports" data-title="Reports" hidden>
+          <div class="page-heading"><div><p class="eyebrow">ANALYST REPORTING</p><h1>Reports</h1><p class="page-description">Summary statistics reflect stored events, findings, decisions, and executions.</p></div><div class="export-actions"><a class="button button-secondary" id="export-json" href="/api/reports/export?format=json">Export JSON</a><a class="button button-secondary" id="export-csv" href="/api/reports/export?format=csv">Export CSV</a></div></div>
+          <div id="report-content"><p class="loading-text">Loading report…</p></div>
+        </section>
+
+        <section class="page-section" id="page-settings" data-title="Settings" hidden>
+          <div class="page-heading"><div><p class="eyebrow">LOCAL CONFIGURATION</p><h1>Settings</h1><p class="page-description">Application and provider status. Secrets are never shown here.</p></div></div>
+          <div id="settings-content"><p class="loading-text">Loading settings…</p></div>
+        </section>
+      </main>
+      <footer class="workspace-footer"><span>Local-first security operations</span><span id="footer-version">Application status: connecting…</span></footer>
+    </div>
+  </div>
+  <script src="app.js" defer></script>
+</body>
+</html>

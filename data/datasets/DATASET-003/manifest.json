@@ -1,0 +1,35 @@
+{
+  "dataset_id": "DATASET-003",
+  "description": "Synthetic multi-source security events for local investigation and evaluation.",
+  "event_count": 2000,
+  "event_file": "events.jsonl",
+  "event_file_sha256": "fb68edb362871dcc3015b32cb38fd75f7e690ebe222457a1929fd6ec9ecdff39",
+  "ground_truth_access": "evaluation_only; do not provide to investigation agents",
+  "ground_truth_file": "ground_truth.jsonl",
+  "ground_truth_file_sha256": "6eb4ab792b195edd80a4ee05fcd5c99b833848cc1e02c575bf5b3937b653b2f7",
+  "manifest_version": "1.0",
+  "name": "Cedar Mixed Operations",
+  "provenance": {
+    "generated_at": "2026-10-31T00:00:00Z",
+    "generator": "scripts/generate_synthetic_datasets.py",
+    "generator_version": "1.0",
+    "origin": "synthetic",
+    "public_dataset_content": false
+  },
+  "severity_counts": {
+    "critical": 100,
+    "high": 200,
+    "informational": 500,
+    "low": 700,
+    "medium": 500
+  },
+  "source_types": [
+    "windows_security",
+    "linux_auth",
+    "network_firewall",
+    "cloud_audit",
+    "web_application",
+    "endpoint_security",
+    "email_identity"
+  ]
+}
