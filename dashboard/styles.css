@@ -129,6 +129,9 @@ td{max-width:480px}
 .data-field dt{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
 .data-field dd{margin:0;overflow-wrap:anywhere}
 .approval-list{display:flex;flex-direction:column;gap:11px}
+.decision-feedback{margin:0;padding:10px 12px;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius);font-weight:600}
+.decision-feedback.success{border-color:var(--success);color:var(--success)}
+.decision-feedback.error{border-color:var(--critical);color:var(--critical)}
 .approval-item{border:1px solid var(--border);background:var(--surface);border-radius:var(--radius)}
 .approval-summary{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding:14px 15px;cursor:pointer;list-style:none}
 .approval-summary::-webkit-details-marker{display:none}

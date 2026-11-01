@@ -94,22 +94,37 @@ class DeterministicMockProvider:
     def _plan_response(payload: dict[str, Any]) -> dict[str, Any]:
         proposals = []
         evidence_by_id = payload.get("evidence_by_id", {})
+        account_events = {
+            "iam_policy_escalation", "unusual_access_key_use", "repeated_failed_login",
+            "mfa_failure_burst", "sudo_failure_burst", "unauthorized_root_shell",
+            "phishing_attachment_blocked",
+        }
+        network_events = {
+            "command_control_egress", "port_scan_detected", "sql_injection_attempt",
+            "path_traversal_probe",
+        }
         for finding in payload.get("findings", []):
             event = evidence_by_id.get(finding["event_id"], {})
+            event_type = (event.get("event") or {}).get("type")
             host = event.get("host", {}).get("hostname") if isinstance(event.get("host"), dict) else None
             actor = event.get("actor", {}) if isinstance(event.get("actor"), dict) else {}
             network = event.get("network", {}) if isinstance(event.get("network"), dict) else {}
-            ip = actor.get("ip") or network.get("source_ip")
+            ip = actor.get("ip") or network.get("source_ip") or network.get("destination_ip")
             username = actor.get("username")
-            if host:
-                action, target_type, target = "isolate_host", "host", host
+            severity = finding.get("severity", "unknown")
+            high_impact_allowed = severity in {"critical", "high"} and finding.get("confidence", 0) >= 0.75
+
+            if event_type in account_events and username:
+                action, target_type, target = ("disable_account" if high_impact_allowed else "monitor"), "account", username
+            elif event_type in network_events and ip:
+                action, target_type, target = ("block_ip" if high_impact_allowed else "monitor"), "ip", ip
+            elif host:
+                action, target_type, target = ("isolate_host" if high_impact_allowed else "monitor"), "host", host
             elif username:
-                action, target_type, target = "disable_account", "account", username
+                action, target_type, target = "monitor", "account", username
             elif ip:
-                action, target_type, target = "block_ip", "ip", ip
+                action, target_type, target = "monitor", "ip", ip
             else:
-                action, target_type, target = "monitor", "account", "unassigned"
-            if target == "unassigned":
                 continue
             proposals.append(
                 {
@@ -118,7 +133,7 @@ class DeterministicMockProvider:
                     "action_type": action,
                     "target_type": target_type,
                     "target_value": str(target),
-                    "rationale": "Proposed from the finding's cited event fields; requires policy validation and human approval.",
+                    "rationale": f"{action.replace('_', ' ').capitalize()} is suggested from the finding type and cited event evidence; policy validation and human approval are required.",
                     "evidence_refs": [finding["event_id"]],
                 }
             )

@@ -8,6 +8,7 @@
     activeInvestigationId: "",
     expandedProposalId: "",
     eventOffset: 0,
+    approvalFeedback: null,
   };
   const $ = (id) => document.getElementById(id);
   const svgNs = "http://www.w3.org/2000/svg";
@@ -584,7 +585,16 @@
     let proposals = data.proposals;
     if (filter === "pending") proposals = proposals.filter((item) => !["approved", "denied"].includes(item.policy_status));
     if (filter === "approved" || filter === "denied") proposals = proposals.filter((item) => item.policy_status === filter);
+    const severityOrder = { critical: 5, high: 4, medium: 3, low: 2, informational: 1, unknown: 0 };
+    const direction = $("approval-sort").value === "severity_asc" ? 1 : -1;
+    proposals.sort((a, b) => direction * ((severityOrder[a.severity] ?? -1) - (severityOrder[b.severity] ?? -1))
+      || String(b.created_at).localeCompare(String(a.created_at)));
     const host = $("approval-list"); host.replaceChildren();
+    if (state.approvalFeedback) {
+      const feedback = node("p", `decision-feedback ${state.approvalFeedback.kind}`, state.approvalFeedback.message);
+      feedback.setAttribute("role", state.approvalFeedback.kind === "error" ? "alert" : "status");
+      host.append(feedback);
+    }
     if (!proposals.length) { host.append(emptyState("No proposals in this view", filter === "pending" ? "No response proposals are awaiting a decision." : "No proposals match this status.")); return; }
     proposals.forEach((proposal) => host.append(renderProposal(proposal)));
   }
@@ -663,7 +673,8 @@
       try {
         const result = await api(`/api/proposals/${encodeURIComponent(proposal.proposal_id)}`);
         resultBox.hidden = false; resultBox.className = `policy-result ${result.policy.allowed ? "allowed" : "rejected"}`;
-        resultBox.textContent = `Policy ${result.policy.allowed ? "allowed" : "rejected"}: ${result.policy.reason} (v${result.policy.policy_version})`;
+        const recommendation = result.policy.code === "severity_below_threshold" ? " Suggested action: Monitor, then save the modification before approving." : "";
+        resultBox.textContent = `Policy ${result.policy.allowed ? "allowed" : "rejected"}: ${result.policy.reason} (v${result.policy.policy_version}).${recommendation}`;
       } catch (error) { resultBox.hidden = false; resultBox.className = "policy-result rejected"; resultBox.textContent = error.message; }
       finally { checkButton.disabled = false; }
     });
@@ -699,9 +710,19 @@
     button.disabled = true;
     try {
       const body = { decision, reviewer: reviewer.trim(), comment: comment.trim(), ...changes };
-      await api(`/api/proposals/${encodeURIComponent(proposalId)}/decisions`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      showNotice(`Proposal decision recorded: ${decision}.`, "success"); await loadApprovals();
-    } catch (error) { showNotice(`Decision was not recorded: ${error.message}`, "error"); }
+      const result = await api(`/api/proposals/${encodeURIComponent(proposalId)}/decisions`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      state.approvalFeedback = {
+        kind: "success",
+        message: `${decision === "approved" ? "Approved" : decision === "denied" ? "Denied" : "Modification saved"}. Decision recorded${result.approval_id ? ` (${result.approval_id})` : ""}.`,
+      };
+      await loadApprovals();
+    } catch (error) {
+      const recommendation = error.message.includes("high or critical finding")
+        ? " Suggested action: choose Monitor, save the modification, then approve."
+        : "";
+      state.approvalFeedback = { kind: "error", message: `Decision not recorded: ${error.message}.${recommendation}` };
+      await loadApprovals().catch(() => {});
+    }
     finally { button.disabled = false; }
   }
 
@@ -823,6 +844,7 @@
     $("finding-severity").addEventListener("change", () => loadFindings().catch((error) => showNotice(error.message,"error")));
     $("finding-search").addEventListener("input", debounce(() => loadFindings().catch((error) => showNotice(error.message,"error")), 180));
     $("approval-filter").addEventListener("change", () => loadApprovals().catch((error) => showNotice(error.message,"error")));
+    $("approval-sort").addEventListener("change", () => loadApprovals().catch((error) => showNotice(error.message,"error")));
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") { document.body.classList.remove("mobile-nav-open"); $("mobile-menu").setAttribute("aria-expanded", "false"); } });
     window.addEventListener("hashchange", () => {
       const requestedPage = location.hash.replace(/^#/, "");

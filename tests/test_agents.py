@@ -121,6 +121,25 @@ class AgentTests(unittest.TestCase):
             ).fetchone()
             self.assertEqual(row[0], "failed")
 
+    def test_response_planner_varies_actions_by_finding_type_and_evidence(self):
+        findings = [
+            {"finding_id": "F1", "event_id": "E1", "severity": "critical", "confidence": 0.94},
+            {"finding_id": "F2", "event_id": "E2", "severity": "high", "confidence": 0.78},
+            {"finding_id": "F3", "event_id": "E3", "severity": "high", "confidence": 0.90},
+            {"finding_id": "F4", "event_id": "E4", "severity": "medium", "confidence": 0.80},
+        ]
+        evidence = {
+            "E1": {"event": {"type": "iam_policy_escalation"}, "host": {"hostname": "ID-01"}, "actor": {"username": "svc-admin"}},
+            "E2": {"event": {"type": "command_control_egress"}, "host": {"hostname": "NET-01"}, "network": {"source_ip": "192.0.2.12"}},
+            "E3": {"event": {"type": "encoded_powershell"}, "host": {"hostname": "WIN-01"}, "actor": {"username": "svc-runner"}},
+            "E4": {"event": {"type": "encoded_powershell"}, "host": {"hostname": "WIN-02"}},
+        }
+        result = DeterministicMockProvider._plan_response({"findings": findings, "evidence_by_id": evidence})
+        self.assertEqual(
+            [(item["action_type"], item["target_type"]) for item in result["proposals"]],
+            [("disable_account", "account"), ("block_ip", "ip"), ("isolate_host", "host"), ("monitor", "host")],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
