@@ -15,8 +15,8 @@ class DashboardUiTests(unittest.TestCase):
 
         for section in ("overview", "datasets", "investigations", "findings", "approvals", "processed", "audit", "reports", "settings"):
             self.assertIn(f'id="page-{section}"', html)
-        self.assertIn("#202B35", css)
-        self.assertIn("#2B3945", css)
+        self.assertIn("#111111", css)
+        self.assertIn("#1A1A1A", css)
         self.assertIn("#F1F0EA", css)
         self.assertIn("#E8E8E1", css)
         self.assertIn('"Source Sans 3"', css)

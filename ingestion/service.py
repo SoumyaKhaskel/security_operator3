@@ -5,11 +5,11 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from backend.database import database_session
+from backend.clock import utc_now_iso
 from backend.services.datasets import DatasetService
 from ingestion.normalizer import MAX_FILE_BYTES, RecordNormalizationError, iter_normalized_records
 
@@ -42,7 +42,7 @@ class IngestionService:
         if path.stat().st_size > MAX_FILE_BYTES:
             raise ValueError(f"file exceeds {MAX_FILE_BYTES} byte import limit")
         batch_id = f"BATCH-{uuid.uuid4()}"
-        started_at = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+        started_at = utc_now_iso()
         file_hash = self._file_hash(path)
         accepted = duplicates = rejected = 0
         quarantine: list[dict[str, Any]] = []
@@ -97,7 +97,7 @@ class IngestionService:
                 else:
                     duplicates += 1
 
-        completed_at = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+        completed_at = utc_now_iso()
         status = "completed_with_rejections" if rejected else "completed"
         if quarantine:
             self.quarantine_dir.mkdir(parents=True, exist_ok=True)

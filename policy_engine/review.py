@@ -5,11 +5,11 @@ from __future__ import annotations
 import json
 import sqlite3
 import uuid
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from backend.database import database_session
+from backend.clock import utc_now_iso
 from policy_engine.engine import PolicyEngine, PolicyResult
 
 
@@ -115,7 +115,7 @@ class ProposalReviewService:
                 raise PolicyRejectedError(policy_result)
 
         approval_id = f"APR-{uuid.uuid4()}"
-        decided_at = self._now()
+        decided_at = utc_now_iso(timespec="microseconds")
         modified = json.dumps(
             {
                 "action_type": final_action,
@@ -214,7 +214,7 @@ class ProposalReviewService:
             self._audit_policy_result(connection, item, result, actor)
 
     def _audit_policy_result(self, connection, item: dict[str, Any], result: PolicyResult, actor: str) -> None:
-        occurred_at = self._now()
+        occurred_at = utc_now_iso(timespec="microseconds")
         connection.execute(
             """INSERT INTO audit_logs
                (audit_id, actor, action, resource_type, resource_id, dataset_id, details, occurred_at)
@@ -248,7 +248,3 @@ class ProposalReviewService:
             "reason": result.reason,
             "policy_version": result.policy_version,
         }
-
-    @staticmethod
-    def _now() -> str:
-        return datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")

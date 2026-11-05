@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +12,7 @@ from agents.response_planner import ResponsePlanner
 from agents.schemas import HuntResult, InvestigationOutput
 from agents.threat_hunter import ThreatHunter
 from agents.threat_investigator import ThreatInvestigator
+from backend.clock import utc_now_iso
 from backend.database import database_session
 
 
@@ -82,7 +82,7 @@ class InvestigationOrchestrator:
                 "proposal_count": len(proposals),
                 "hunt_summary": hunt_summary,
             }
-            completed_at = self._now()
+            completed_at = utc_now_iso()
             with database_session(self.database_path) as connection:
                 connection.execute(
                     "UPDATE investigations SET status='completed', completed_at=?, summary=? WHERE investigation_id=?",
@@ -114,7 +114,7 @@ class InvestigationOrchestrator:
             with database_session(self.database_path) as connection:
                 connection.execute(
                     "UPDATE investigations SET status='failed', completed_at=?, summary=? WHERE investigation_id=?",
-                    (self._now(), json.dumps({"failed_stage": current_stage, "error": str(exc)[:1000]}), investigation_id),
+                    (utc_now_iso(), json.dumps({"failed_stage": current_stage, "error": str(exc)[:1000]}), investigation_id),
                 )
                 connection.execute(
                     """INSERT INTO audit_logs
@@ -122,7 +122,7 @@ class InvestigationOrchestrator:
                        VALUES (?, ?, 'investigation.failed', 'investigation', ?, ?, ?, ?)""",
                     (
                         f"AUD-{investigation_id}-FAILED", investigation["requested_by"], investigation_id,
-                        dataset_id, json.dumps({"failed_stage": current_stage, "error": str(exc)[:1000]}), self._now(),
+                        dataset_id, json.dumps({"failed_stage": current_stage, "error": str(exc)[:1000]}), utc_now_iso(),
                     ),
                 )
             raise
@@ -144,7 +144,7 @@ class InvestigationOrchestrator:
                         finding.title,
                         finding.explanation,
                         json.dumps(finding.evidence_refs),
-                        self._now(),
+                        utc_now_iso(),
                     ),
                 )
 
@@ -159,7 +159,7 @@ class InvestigationOrchestrator:
                         investigation_id,
                         json.dumps(hunt.query.model_dump(mode="json"), sort_keys=True),
                         len(hunt.matched_event_ids),
-                        self._now(),
+                        utc_now_iso(),
                     ),
                 )
 
@@ -181,7 +181,7 @@ class InvestigationOrchestrator:
                             sort_keys=True,
                         ),
                         proposal.rationale,
-                        self._now(),
+                        utc_now_iso(),
                     ),
                 )
 
@@ -201,10 +201,6 @@ class InvestigationOrchestrator:
                        VALUES (?, ?, 'agent.stage_started', 'investigation', ?, ?, ?, ?)""",
                     (
                         f"AUD-{investigation_id}-{status}", investigation["requested_by"], investigation_id,
-                        investigation["dataset_id"], json.dumps({"status": status}), self._now(),
+                        investigation["dataset_id"], json.dumps({"status": status}), utc_now_iso(),
                     ),
                 )
-
-    @staticmethod
-    def _now() -> str:
-        return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")

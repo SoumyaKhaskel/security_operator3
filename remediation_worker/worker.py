@@ -6,11 +6,11 @@ import json
 import re
 import sqlite3
 import uuid
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from backend.database import database_session
+from backend.clock import utc_now_iso
 from policy_engine.review import PolicyRejectedError, ProposalNotFoundError, ProposalReviewService
 
 
@@ -59,8 +59,8 @@ class SimulationRemediationWorker:
             raise ExecutionNotAuthorized("proposal is not in the approved state")
 
         execution_id = f"EXEC-{uuid.uuid4()}"
-        started_at = self._now()
-        completed_at = self._now()
+        started_at = utc_now_iso(timespec="microseconds")
+        completed_at = utc_now_iso(timespec="microseconds")
         before_event = proposal["original_event"]
         after_event = dict(before_event)
         after_event["status"] = "resolved"
@@ -198,7 +198,3 @@ class SimulationRemediationWorker:
                 (proposal_id, approval_id),
             ).fetchone()
         return self.get_execution(row["execution_id"]) if row else None
-
-    @staticmethod
-    def _now() -> str:
-        return datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z")

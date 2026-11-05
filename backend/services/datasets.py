@@ -38,36 +38,28 @@ class DatasetService:
             for item in self._index()["datasets"]
         ]
 
-    def get_manifest(self, dataset_id: str) -> dict[str, Any]:
+    def _dataset_manifest(self, dataset_id: str) -> tuple[Path, dict[str, Any]]:
         for item in self._index()["datasets"]:
             if item["dataset_id"] == dataset_id:
                 path = self.library_dir / item["manifest"]
                 manifest = json.loads(path.read_text(encoding="utf-8"))
                 if manifest["dataset_id"] != dataset_id:
                     raise ValueError("Dataset manifest ID does not match its library index")
-                event_path = path.parent / manifest["event_file"]
-                digest = hashlib.sha256(event_path.read_bytes()).hexdigest()
-                if digest != manifest["event_file_sha256"]:
-                    raise ValueError(f"Dataset checksum mismatch for {dataset_id}")
-                return manifest
+                return path, manifest
         raise DatasetNotFoundError(dataset_id)
+
+    def get_manifest(self, dataset_id: str) -> dict[str, Any]:
+        path, manifest = self._dataset_manifest(dataset_id)
+        event_path = path.parent / manifest["event_file"]
+        digest = hashlib.sha256(event_path.read_bytes()).hexdigest()
+        if digest != manifest["event_file_sha256"]:
+            raise ValueError(f"Dataset checksum mismatch for {dataset_id}")
+        return manifest
 
     def get_event_file_path(self, dataset_id: str) -> Path:
         """Return the event file path relative to its dataset-specific manifest."""
-        for item in self._index()["datasets"]:
-            if item["dataset_id"] == dataset_id:
-                manifest_path = self.library_dir / item["manifest"]
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                if manifest["dataset_id"] != dataset_id:
-                    raise ValueError("Dataset manifest ID does not match its library index")
-                return manifest_path.parent / manifest["event_file"]
-        raise DatasetNotFoundError(dataset_id)
-
-    def get_public_dataset(self, dataset_id: str) -> dict[str, Any]:
-        for item in self.list_datasets():
-            if item["dataset_id"] == dataset_id:
-                return item
-        raise DatasetNotFoundError(dataset_id)
+        manifest_path, manifest = self._dataset_manifest(dataset_id)
+        return manifest_path.parent / manifest["event_file"]
 
     def register_library(self) -> list[dict[str, Any]]:
         """Synchronize available manifest metadata into the application database."""

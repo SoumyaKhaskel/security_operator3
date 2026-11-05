@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from backend.database import database_session
+from backend.clock import utc_now_iso
 from backend.services.datasets import DatasetService
 
 
@@ -22,7 +22,7 @@ class InvestigationService:
         if not requested_by.strip():
             raise ValueError("requested_by is required")
         investigation_id = f"INV-{uuid.uuid4()}"
-        started_at = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+        started_at = utc_now_iso()
         with database_session(self.database_path) as connection:
             connection.execute(
                 """INSERT INTO investigations

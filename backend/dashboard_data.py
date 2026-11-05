@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.config import Settings
+from backend.clock import utc_now_iso
 from backend.database import database_session
 from backend.services.datasets import DatasetService
 
@@ -281,7 +282,7 @@ class DashboardDataService:
         evaluation = self._evaluation_metrics(truth_rows, detected) if truth_rows else None
         return {
             "dataset_id": dataset_id,
-            "generated_at": self._now(),
+            "generated_at": utc_now_iso(),
             "overview": overview,
             "agent_performance": [dict(row) for row in agent_rows],
             "remediation_executions": executions,
@@ -396,12 +397,6 @@ class DashboardDataService:
             stage: "running" if index == active_stage else ("completed" if index < active_stage else "waiting")
             for index, stage in enumerate(stages)
         }
-
-    @staticmethod
-    def _now() -> str:
-        from datetime import datetime, timezone
-
-        return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
     @staticmethod
     def _evaluation_metrics(truth_rows, detected: set[str]) -> dict[str, Any]:
